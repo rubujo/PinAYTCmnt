@@ -52,8 +52,12 @@
             "description": "__MSG_stringUnpinSelectedContent__"
         },
         "resetPinnedContentPosition": {
-            "suggested_key": "Alt+Shift+R",
+            "suggested_key": "Alt+Shift+A",
             "description": "__MSG_stringResetPinnedContentPosition__"
+        },
+        "togglePinnedContent": {
+            "suggested_key": "Alt+Shift+W",
+            "description": "__MSG_stringTogglePinnedContent__"
         }
     }
 }

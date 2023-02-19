@@ -34,6 +34,10 @@ chrome.commands.onCommand.addListener((command) => {
         Function.sendMsg(command, false).catch(error => {
             Function.writeConsoleLog(error);
         });
+    } else if (command === Function.CommandTogglePinnedContent) {
+        Function.sendMsg(command, false).catch(error => {
+            Function.writeConsoleLog(error);
+        });
     }
 });
 

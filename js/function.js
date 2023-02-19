@@ -25,9 +25,14 @@ export class Function {
     static CommandUnpinSelectedContent = "unpinSelectedContent";
 
     /**
-     * 指令：重設已釘選內容的位置
+     * 指令：重設已釘選的內容的位置
      */
     static CommandResetPinnedContentPosition = "resetPinnedContentPosition";
+
+    /**
+     * 指令：開闔已釘選的內容
+     */
+    static CommandTogglePinnedContent = "togglePinnedContent";
 
     /**
      * 分隔符號 "^"
@@ -147,8 +152,8 @@ export class Function {
      *
      * @returns {any[]} 陣列，解析後的 YouTube 留言內容。
      */
-    static async extractYouTubeComment() {
-        // TODO: 2023-02-17 未來會需要再調整。
+    static extractYouTubeComment() {
+        // TODO: 2023-02-17 未來可能會需要再調整。
         let outputDataSet = [],
             composeStr = "",
             unknownNameCount = 1,

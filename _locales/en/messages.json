@@ -19,6 +19,10 @@
         "message": "Reset pinned content position",
         "description": "String: Reset pinned content position"
     },
+    "stringTogglePinnedContent": {
+        "message": "Toggle pinned content",
+        "description": "String: Toggle pinned content"
+    },
     "stringUnknownName": {
         "message": "Unknown name",
         "description": "String: Unknown name"
@@ -31,9 +35,9 @@
         "message": "Double click to toggle, or hold and drag to move",
         "description": "String: Double click to toggle, or hold and drag to move"
     },
-    "stringSongList": {
-        "message": "Song List",
-        "description": "String: SongList"
+    "stringPinnedContent": {
+        "message": "Pinned content",
+        "description": "String: Pinned content"
     },
     "messageTabIDIsUndefined": {
         "message": "Tab id is undefined.",

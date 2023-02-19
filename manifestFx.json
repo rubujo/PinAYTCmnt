@@ -61,9 +61,15 @@
         },
         "resetPinnedContentPosition": {
             "suggested_key": {
-                "default": "Alt+Shift+R"
+                "default": "Alt+Shift+A"
             },
             "description": "__MSG_stringResetPinnedContentPosition__"
+        },
+        "togglePinnedContent": {
+            "suggested_key": {
+                "default": "Alt+Shift+W"
+            },
+            "description": "__MSG_stringTogglePinnedContent__"
         }
     }
 }

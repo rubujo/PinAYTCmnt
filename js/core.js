@@ -31,22 +31,24 @@ export function doInit() {
     /**
      * 接收來自 background.js 的訊息
      */
-    chrome.runtime.onMessage.addListener(async (response, _sender, _sendResponse) => {
+    chrome.runtime.onMessage.addListener((response, _sender, _sendResponse) => {
         if (response === Function.CommandPinSelectedContent) {
-            await doPinSelectedContent();
+            doPinSelectedContent();
         } else if (response === Function.CommandUnpinSelectedContent) {
-            doRemoveSongListContainer();
+            doRemovePinnedContentMainContainer();
         } else if (response === Function.CommandPinSelectedContent) {
-            doResetSongListContainerPosition();
+            doResetPinnedContentMainContainerPosition();
+        } else if (response === Function.CommandTogglePinnedContent) {
+            doTogglePinnedContentMainContainer();
         }
     });
 
     /**
      * 執行釘選已選取的內容
      */
-    async function doPinSelectedContent() {
+    function doPinSelectedContent() {
         // 取得已選取的 YouTube 留言內容。
-        const dataSet = await Function.extractYouTubeComment();
+        const dataSet = Function.extractYouTubeComment();
 
         if (dataSet.length <= 0) {
             alert(chrome.i18n.getMessage("messageSelectTheCommentContentFirst"));
@@ -54,7 +56,7 @@ export function doInit() {
             return;
         }
 
-        // TODO: 2023-02-16 未來會需要再調整。
+        // TODO: 2023-02-16 未來可能會需要再調整。
         // 前處理資料。
 
         const processedDataSet = [];
@@ -117,48 +119,48 @@ export function doInit() {
         // 清除 dataSet。
         dataSet.length = 0;
 
-        const elemMainContainer = document.createElement("div"),
-            elemTitleContainer = document.createElement("div"),
-            elemTitle = document.createElement("div"),
-            elemBtnContainer = document.createElement("div"),
-            elemBtn = document.createElement("a"),
-            elemContentContainer = document.createElement("div");
+        const elemPinnedContentMainContainer = document.createElement("div"),
+            elemPinnedContentTitleContainer = document.createElement("div"),
+            elemPinnedContentTitle = document.createElement("div"),
+            elemBtnCloseContainer = document.createElement("div"),
+            elemBtnClose = document.createElement("a"),
+            elemPinnedContentContentsContainer = document.createElement("div");
 
-        elemMainContainer.id = "dSongListContainer";
-        elemMainContainer.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
-        elemMainContainer.style.borderRadius = "12px";
-        elemMainContainer.style.margin = "8px";
-        elemMainContainer.style.padding = "8px";
-        elemMainContainer.style.position = "absolute";
-        elemMainContainer.style.zIndex = "1000";
+        elemPinnedContentMainContainer.id = "dPinnedContentMainContainer";
+        elemPinnedContentMainContainer.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
+        elemPinnedContentMainContainer.style.borderRadius = "12px";
+        elemPinnedContentMainContainer.style.margin = "8px";
+        elemPinnedContentMainContainer.style.padding = "8px";
+        elemPinnedContentMainContainer.style.position = "absolute";
+        elemPinnedContentMainContainer.style.zIndex = "1000";
 
-        elemTitleContainer.style.display = "flex";
-        elemTitleContainer.style.marginBottom = "4px";
-        elemTitleContainer.style.userSelect = "none";
+        elemPinnedContentTitleContainer.id = "dPinnedContentTitleContainer";
+        elemPinnedContentTitleContainer.style.display = "flex";
+        elemPinnedContentTitleContainer.style.marginBottom = "4px";
+        elemPinnedContentTitleContainer.style.userSelect = "none";
 
-        // TODO: 2023-02-16 有效能不佳的情況。
         // 滑鼠拖曳移動功能。
         // 來源：https://stackoverflow.com/a/45831670
 
-        elemTitle.addEventListener("mouseover", () => {
-            elemTitle.style.cursor = "pointer";
+        elemPinnedContentTitle.addEventListener("mouseover", () => {
+            elemPinnedContentTitle.style.cursor = "pointer";
         });
-        elemTitle.addEventListener("mouseout", () => {
-            elemTitle.style.cursor = "";
+        elemPinnedContentTitle.addEventListener("mouseout", () => {
+            elemPinnedContentTitle.style.cursor = "";
         });
-        elemTitle.addEventListener("mousedown", (event) => {
+        elemPinnedContentTitle.addEventListener("mousedown", (event) => {
             isDownAnHold = true;
 
-            if (elemMainContainer.style.transform === null ||
-                elemMainContainer.style.transform === "") {
+            if (elemPinnedContentMainContainer.style.transform === null ||
+                elemPinnedContentMainContainer.style.transform === "") {
                 offset = [
-                    elemMainContainer.offsetLeft - event.clientX,
-                    elemMainContainer.offsetTop - event.clientY
+                    elemPinnedContentMainContainer.offsetLeft - event.clientX,
+                    elemPinnedContentMainContainer.offsetTop - event.clientY
                 ];
             } else {
                 // 來源：https://stackoverflow.com/a/52733535
                 // 0：原字串、1：X 軸、2：Y 軸。
-                const transformData = elemMainContainer.style
+                const transformData = elemPinnedContentMainContainer.style
                     .transform
                     .match(/translate\((.*?), (.*?)\)/);
 
@@ -175,24 +177,21 @@ export function doInit() {
         document.addEventListener("mouseup", (event) => {
             if (event.target !== null) {
                 if (event.target.id === "sTitle") {
-                    elemTitle.style.cursor = "pointer";
+                    elemPinnedContentTitle.style.cursor = "pointer";
                 } else {
-                    elemTitle.style.cursor = "";
+                    elemPinnedContentTitle.style.cursor = "";
                 }
             } else {
-                elemTitle.style.cursor = "";
+                elemPinnedContentTitle.style.cursor = "";
             }
 
             isDownAnHold = false;
         });
         document.addEventListener("mousemove", (event) => {
             if (isDownAnHold) {
-                if (elemTitle.style.cursor !== "move") {
-                    elemTitle.style.cursor = "move";
+                if (elemPinnedContentTitle.style.cursor !== "move") {
+                    elemPinnedContentTitle.style.cursor = "move";
                 }
-
-                //elemMainContainer.style.left = `${(event.clientX + offset[0])}px`;
-                //elemMainContainer.style.top = `${(event.clientY + offset[1])}px`;
 
                 coordinateXY = [
                     event.clientX + offset[0],
@@ -201,85 +200,71 @@ export function doInit() {
             }
         });
 
+        // 來源：https://stackoverflow.com/a/46484405
         window.requestAnimationFrame(function animation() {
-            elemMainContainer.style.transform = `translate(${coordinateXY[0]}px, ${coordinateXY[1]}px)`;
+            elemPinnedContentMainContainer.style.transform = `translate(${coordinateXY[0]}px, ${coordinateXY[1]}px)`;
 
             window.requestAnimationFrame(animation);
         });
 
-        elemTitle.id = "sTitle"
-        elemTitle.textContent = chrome.i18n.getMessage("stringSongList");
-        elemTitle.title = chrome.i18n.getMessage("stringDoubleClickToToggle");
-        elemTitle.style.color = "#FFFFFF";
-        elemTitle.style.fontSize = "1.5rem";
-        elemTitle.style.fontWeight = "bold";
-        elemTitle.style.flex = "auto";
-        elemTitle.style.marginRight = "4px";
-        elemTitle.addEventListener("dblclick", (event) => {
+        elemPinnedContentTitle.id = "dPinnedContentTitle"
+        elemPinnedContentTitle.textContent = chrome.i18n.getMessage("stringPinnedContent");
+        elemPinnedContentTitle.title = chrome.i18n.getMessage("stringDoubleClickToToggle");
+        elemPinnedContentTitle.style.color = "#FFFFFF";
+        elemPinnedContentTitle.style.fontSize = "1.5rem";
+        elemPinnedContentTitle.style.fontWeight = "bold";
+        elemPinnedContentTitle.style.flex = "auto";
+        elemPinnedContentTitle.style.marginRight = "4px";
+        elemPinnedContentTitle.addEventListener("dblclick", (event) => {
             event.preventDefault();
 
-            // 判定 isSetTempMinWidth。
-            if (isSetTempMinWidth === false) {
-                // 設定 tempMinWidth。
-                tempMinWidth = elemMainContainer.style.minWidth;
-
-                isSetTempMinWidth = true;
-            }
-
-            if (elemContentContainer.style.display !== "none") {
-                elemMainContainer.style.minWidth = `${elemTitle.clientWidth}px`;
-
-                elemTitleContainer.style.marginBottom = "";
-
-                elemContentContainer.style.display = "none";
-            } else {
-                elemMainContainer.style.minWidth = tempMinWidth;
-
-                elemTitleContainer.style.marginBottom = "4px";
-
-                elemContentContainer.style.display = "";
-            }
+            // 開闔 PinnedContentMainContainer。
+            doTogglePinnedContentMainContainer(
+                elemPinnedContentMainContainer,
+                elemPinnedContentTitleContainer,
+                elemPinnedContentTitle,
+                elemPinnedContentContentsContainer);
         });
 
-        elemBtnContainer.style.flex = "auto";
-        elemBtnContainer.style.textAlign = "right";
+        elemBtnCloseContainer.style.flex = "auto";
+        elemBtnCloseContainer.style.textAlign = "right";
 
-        elemTitleContainer.appendChild(elemTitle);
-        elemTitleContainer.appendChild(elemBtnContainer);
+        elemPinnedContentTitleContainer.appendChild(elemPinnedContentTitle);
+        elemPinnedContentTitleContainer.appendChild(elemBtnCloseContainer);
 
-        elemBtn.text = "[X]";
-        elemBtn.href = "javascript:void(0);";
-        elemBtn.style.color = "#FF0000";
-        elemBtn.style.fontSize = "1.5rem";
-        elemBtn.style.fontWeight = "bold";
-        elemBtn.style.textDecoration = "none";
-        elemBtn.title = chrome.i18n.getMessage("stringClickToClose");
-        elemBtn.addEventListener("mouseover", (event) => {
+        elemBtnClose.text = "[X]";
+        elemBtnClose.href = "javascript:void(0);";
+        elemBtnClose.style.color = "#FF0000";
+        elemBtnClose.style.fontSize = "1.5rem";
+        elemBtnClose.style.fontWeight = "bold";
+        elemBtnClose.style.textDecoration = "none";
+        elemBtnClose.title = chrome.i18n.getMessage("stringClickToClose");
+        elemBtnClose.addEventListener("mouseover", (event) => {
             event.preventDefault();
 
-            elemBtn.style.color = "#FFFFFF";
+            elemBtnClose.style.color = "#FFFFFF";
         });
-        elemBtn.addEventListener("mouseout", (event) => {
+        elemBtnClose.addEventListener("mouseout", (event) => {
             event.preventDefault();
 
-            elemBtn.style.color = "#FF0000";
+            elemBtnClose.style.color = "#FF0000";
         });
-        elemBtn.addEventListener("click", (event) => {
+        elemBtnClose.addEventListener("click", (event) => {
             event.preventDefault();
 
-            elemMainContainer.remove();
+            elemPinnedContentMainContainer.remove();
         });
 
-        elemBtnContainer.appendChild(elemBtn);
+        elemBtnCloseContainer.appendChild(elemBtnClose);
 
-        elemMainContainer.appendChild(elemTitleContainer);
+        elemPinnedContentMainContainer.appendChild(elemPinnedContentTitleContainer);
 
-        elemContentContainer.id = "dSongListContentContainer";
-        elemContentContainer.style.maxHeight = "25vh";
-        elemContentContainer.style.overflowY = "auto";
-        elemContentContainer.style.scrollbarColor = "#FFFFFF";
+        elemPinnedContentContentsContainer.id = "dPinnedContentContentsContainer";
+        elemPinnedContentContentsContainer.style.maxHeight = "25vh";
+        elemPinnedContentContentsContainer.style.overflowY = "auto";
+        elemPinnedContentContentsContainer.style.scrollbarColor = "#FFFFFF";
 
-        // 產生歌曲清單的內容。
+        // 產生已釘選的內容的內容。
         processedDataSet.forEach((item) => {
             // 0：影片 ID、1：開始秒數、2：歌名。
             const tempArray = item.split(Function.Seperator),
@@ -313,15 +298,15 @@ export function doInit() {
 
             elemP.appendChild(elemSpan);
 
-            elemContentContainer.appendChild(elemP);
+            elemPinnedContentContentsContainer.appendChild(elemP);
         });
 
         // 清除 processedDataSet。
         processedDataSet.length = 0;
 
-        elemMainContainer.appendChild(elemContentContainer);
+        elemPinnedContentMainContainer.appendChild(elemPinnedContentContentsContainer);
 
-        doCreateOrUpdateTempContainer(elemMainContainer);
+        doCreateOrUpdateTempContainer(elemPinnedContentMainContainer);
     }
 
     /**
@@ -354,16 +339,16 @@ export function doInit() {
             return;
         }
 
-        // 先移除 SongListContainer。
-        doRemoveSongListContainer();
+        // 先移除 PinnedContentMainContainer。
+        doRemovePinnedContentMainContainer();
 
         elemContainer.insertBefore(htmlElement, elemHtml5VideoPlayer);
 
-        // 設定 dSongListContainer 的最小寬度。
-        const elemSongListContentContainer = document.getElementById("dSongListContentContainer");
+        // 設定 dPinnedContentMainContainer 的最小寬度。
+        const elemPinnedContentContentsContainer = document.getElementById("dPinnedContentContentsContainer");
 
-        if (elemSongListContentContainer !== undefined && elemSongListContentContainer !== null) {
-            htmlElement.style.minWidth = `${elemSongListContentContainer.clientWidth}px`;
+        if (elemPinnedContentContentsContainer !== undefined && elemPinnedContentContentsContainer !== null) {
+            htmlElement.style.minWidth = `${elemPinnedContentContentsContainer.clientWidth}px`;
         }
 
         // 回到影片播放器的位置。
@@ -414,8 +399,8 @@ export function doInit() {
 
                 // TODO: 2023-02-16 暫時先不進行任何處理。
             } else if (tempArray1[0] !== tempArray2[0]) {
-                // 移除 SongListContainer。
-                doRemoveSongListContainer();
+                // 移除 PinnedContentMainContainer。
+                doRemovePinnedContentMainContainer();
 
                 alert(chrome.i18n.getMessage("messageTheVideoIDDoesNotMatch"));
 
@@ -441,10 +426,13 @@ export function doInit() {
                 doPinSelectedContent();
             } else if (event.shiftKey && event.code === "KeyY" && isYouTubeVideo) {
                 // 判斷目前所在頁面的網址及按下的按鍵是否為 Shift + Y 鍵。
-                doRemoveSongListContainer();
-            } else if (event.shiftKey && event.code === "KeyR" && isYouTubeVideo) {
-                // 判斷目前所在頁面的網址及按下的按鍵是否為 Shift + R 鍵。
-                doResetSongListContainerPosition();
+                doRemovePinnedContentMainContainer();
+            } else if (event.shiftKey && event.code === "KeyA" && isYouTubeVideo) {
+                // 判斷目前所在頁面的網址及按下的按鍵是否為 Shift + A 鍵。
+                doResetPinnedContentMainContainerPosition();
+            } else if (event.shiftKey && event.code === "KeyW" && isYouTubeVideo) {
+                // 判斷目前所在頁面的網址及按下的按鍵是否為 Shift + W 鍵。
+                doTogglePinnedContentMainContainer();
             }
         });
     }
@@ -453,19 +441,19 @@ export function doInit() {
      * 執行注入自定義 CSS 樣式
      */
     function doInjectCustomCSS() {
-        const css1 = "/* for Firefox. */" +
-            "#dSongListContentContainer {" +
+        const css1 = "/* 針對 Mozilla Firefox。 */" +
+            "#dPinnedContentContentsContainer {" +
             "scrollbar-width: 12px;" +
             "scrollbar-color: #FFFFFF rgba(255, 255, 255, 0.3);" +
             "}";
-        const css2 = "#dSongListContentContainer::-webkit-scrollbar {" +
+        const css2 = "#dPinnedContentContentsContainer::-webkit-scrollbar {" +
             "width: 12px;" +
             "}";
-        const css3 = "#dSongListContentContainer::-webkit-scrollbar-thumb {" +
+        const css3 = "#dPinnedContentContentsContainer::-webkit-scrollbar-thumb {" +
             "background-color: #FFFFFF;" +
             "border-radius: 12px;" +
             "}";
-        const css4 = "#dSongListContentContainer::-webkit-scrollbar-track {" +
+        const css4 = "#dPinnedContentContentsContainer::-webkit-scrollbar-track {" +
             "background: rgba(255, 255, 255, 0.3);" +
             "border-radius: 12px;" +
             "}";
@@ -477,27 +465,89 @@ export function doInit() {
     }
 
     /**
-     * 執行移除 SongListContainer
+     * 執行移除 PinnedContentMainContainer
      */
-    function doRemoveSongListContainer() {
-        const elemSongListContainer = document.getElementById("dSongListContainer");
+    function doRemovePinnedContentMainContainer() {
+        const elemPinnedContentMainContainer = document.getElementById("dPinnedContentMainContainer");
 
-        if (elemSongListContainer !== undefined && elemSongListContainer !== null) {
-            elemSongListContainer.remove();
+        if (elemPinnedContentMainContainer !== undefined && elemPinnedContentMainContainer !== null) {
+            elemPinnedContentMainContainer.remove();
         }
     }
 
     /**
-     * 執行重設 SongListContainer 的位置
+     * 執行重設 PinnedContentMainContainer 的位置
      */
-    function doResetSongListContainerPosition() {
-        const elemSongListContainer = document.getElementById("dSongListContainer");
+    function doResetPinnedContentMainContainerPosition() {
+        const elemPinnedContentMainContainer = document.getElementById("dPinnedContentMainContainer");
 
-        if (elemSongListContainer !== undefined && elemSongListContainer !== null) {
+        if (elemPinnedContentMainContainer !== undefined && elemPinnedContentMainContainer !== null) {
             coordinateXY = [
-                elemSongListContainer.offsetLeft,
-                elemSongListContainer.offsetTop
+                elemPinnedContentMainContainer.offsetLeft,
+                elemPinnedContentMainContainer.offsetTop
             ]
+        }
+    }
+
+    /**
+     * 執行開闔 PinnedContentMainContainer
+     *
+     * @param {HTMLDivElement} elemPinnedContentMainContainer HTML Div 元素，PinnedContentMainContainer。
+     * @param {HTMLDivElement} elemPinnedContentTitleContainer HTML Div 元素，PinnedContentTitleContainer。
+     * @param {HTMLDivElement} elemPinnedContentTitle HTML Div 元素，PinnedContentTitle。
+     * @param {HTMLDivElement} elemPinnedContentContentsContainer HTML Div 元素，PinnedContentContentsContainer。
+     */
+    function doTogglePinnedContentMainContainer(
+        elemPinnedContentMainContainer = null,
+        elemPinnedContentTitleContainer = null,
+        elemPinnedContentTitle = null,
+        elemPinnedContentContentsContainer = null) {
+
+        if (elemPinnedContentMainContainer === null) {
+            elemPinnedContentMainContainer = document.getElementById("dPinnedContentMainContainer");
+        }
+
+        if (elemPinnedContentTitleContainer === null) {
+            elemPinnedContentTitleContainer = document.getElementById("dPinnedContentTitleContainer");
+        }
+
+        if (elemPinnedContentTitle === null) {
+            elemPinnedContentTitle = document.getElementById("dPinnedContentTitle");
+        }
+
+        if (elemPinnedContentContentsContainer === null) {
+            elemPinnedContentContentsContainer = document.getElementById("dPinnedContentContentsContainer");
+        }
+
+        if (elemPinnedContentMainContainer !== undefined &&
+            elemPinnedContentMainContainer !== null &&
+            elemPinnedContentTitleContainer !== undefined &&
+            elemPinnedContentTitleContainer !== null &&
+            elemPinnedContentTitle !== undefined &&
+            elemPinnedContentTitle !== null &&
+            elemPinnedContentContentsContainer !== undefined &&
+            elemPinnedContentContentsContainer !== null) {
+            // 判定 isSetTempMinWidth。
+            if (isSetTempMinWidth === false) {
+                // 設定 tempMinWidth。
+                tempMinWidth = elemPinnedContentMainContainer.style.minWidth;
+
+                isSetTempMinWidth = true;
+            }
+
+            if (elemPinnedContentContentsContainer.style.display !== "none") {
+                elemPinnedContentMainContainer.style.minWidth = `${elemPinnedContentTitle.clientWidth}px`;
+
+                elemPinnedContentTitleContainer.style.marginBottom = "";
+
+                elemPinnedContentContentsContainer.style.display = "none";
+            } else {
+                elemPinnedContentMainContainer.style.minWidth = tempMinWidth;
+
+                elemPinnedContentTitleContainer.style.marginBottom = "4px";
+
+                elemPinnedContentContentsContainer.style.display = "";
+            }
         }
     }
 }

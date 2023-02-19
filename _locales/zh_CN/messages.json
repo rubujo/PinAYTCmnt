@@ -16,8 +16,12 @@
         "description": "String: Pin selected content"
     },
     "stringResetPinnedContentPosition": {
-        "message": "重设已钉选内容的位置",
+        "message": "重设已钉选的内容的位置",
         "description": "String: Reset pinned content position"
+    },
+    "stringTogglePinnedContent": {
+        "message": "开阖已钉选的内容",
+        "description": "String: Toggle pinned content"
     },
     "stringUnknownName": {
         "message": "未知名称",
@@ -31,9 +35,9 @@
         "message": "双击以开阖，或按住并拖曳以移动",
         "description": "String: Double click to toggle, or hold and drag to move"
     },
-    "stringSongList": {
-        "message": "歌曲清单",
-        "description": "String: SongList"
+    "stringPinnedContent": {
+        "message": "已钉选的内容",
+        "description": "String: Pinned content"
     },
     "messageTabIDIsUndefined": {
         "message": "Tab id 为未定义。",
