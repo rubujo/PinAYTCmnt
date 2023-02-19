@@ -1,0 +1,59 @@
+{
+    "name": "__MSG_appName__",
+    "description": "__MSG_appDesc__",
+    "default_locale": "en",
+    "version": "1.2.0",
+    "manifest_version": 3,
+    "permissions": [
+        "contextMenus"
+    ],
+    "host_permissions": [
+        "*://*.youtube.com/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.youtube.com/*"
+            ],
+            "js": [
+                "js/content_script.js"
+            ],
+            "run_at": "document_start"
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "resources": [
+                "js/core.js",
+                "js/function.js"
+            ]
+        }
+    ],
+    "icons": {
+        "16": "images/icon16.png",
+        "32": "images/icon32.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
+    },
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "commands": {
+        "pinSelectedContent": {
+            "suggested_key": "Alt+Shift+U",
+            "description": "__MSG_stringPinSelectedContent__"
+        },
+        "unpinSelectedContent": {
+            "suggested_key": "Alt+Shift+Y",
+            "description": "__MSG_stringUnpinSelectedContent__"
+        },
+        "resetPinnedContentPosition": {
+            "suggested_key": "Alt+Shift+R",
+            "description": "__MSG_stringResetPinnedContentPosition__"
+        }
+    }
+}

@@ -1,0 +1,66 @@
+{
+    "appName": {
+        "message": "PinAYTCmnt",
+        "description": "Name of this extension: PinAYTCmnt"
+    },
+    "appDesc": {
+        "message": "Pin a YouTube comment in the YouTube video player.",
+        "description": "Description of this extension: Pin a YouTube comment in the YouTube video player."
+    },
+    "stringPinSelectedContent": {
+        "message": "Pin selected content",
+        "description": "String: Pin selected content"
+    },
+    "stringUnpinSelectedContent": {
+        "message": "Unpin selected content",
+        "description": "String: Unpin selected content"
+    },
+    "stringResetPinnedContentPosition": {
+        "message": "Reset pinned content position",
+        "description": "String: Reset pinned content position"
+    },
+    "stringUnknownName": {
+        "message": "Unknown name",
+        "description": "String: Unknown name"
+    },
+    "stringClickToClose": {
+        "message": "Click to close",
+        "description": "String: Click to close"
+    },
+    "stringDoubleClickToToggle": {
+        "message": "Double click to toggle, or hold and drag to move",
+        "description": "String: Double click to toggle, or hold and drag to move"
+    },
+    "stringSongList": {
+        "message": "Song List",
+        "description": "String: SongList"
+    },
+    "messageTabIDIsUndefined": {
+        "message": "Tab id is undefined.",
+        "description": "Message: Tab id is undefined."
+    },
+    "messageTabsIsEmpty": {
+        "message": "Tabs is empty.",
+        "description": "Message: Tabs is empty."
+    },
+    "messageSelectTheCommentContentFirst": {
+        "message": "Select the comment content first!",
+        "description": "Message: Select the comment content first!"
+    },
+    "messageElemContainerIsUndefinedOrNull": {
+        "message": "elemContainer is undefined or null.",
+        "description": "Message: elemContainer is undefined or null."
+    },
+    "messageElemHtml5VideoPlayerIsUndefinedOrNull": {
+        "message": "elemHtml5VideoPlayer is undefined or null.",
+        "description": "Message: elemHtml5VideoPlayer is undefined or null."
+    },
+    "messageElemVideoIsUndefinedOrNull": {
+        "message": "elemVideo is undefined or null.",
+        "description": "Message: elemVideo is undefined or null."
+    },
+    "messageTheVideoIDDoesNotMatch": {
+        "message": "The video ID does not match, please re-pin the comment content.",
+        "description": "Message: The video ID does not match, please re-pin the comment content."
+    }
+}

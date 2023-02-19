@@ -1,0 +1,66 @@
+{
+    "appName": {
+        "message": "釘選 YouTube 留言",
+        "description": "Name of this extension: PinAYTCmnt"
+    },
+    "appDesc": {
+        "message": "在 YouTube 影片播放器內釘選已選取的留言內容。",
+        "description": "Description of this extension: Pin a YouTube comment in the YouTube video player."
+    },
+    "stringPinSelectedContent": {
+        "message": "釘選已選取的內容",
+        "description": "String: Pin selected content"
+    },
+    "stringUnpinSelectedContent": {
+        "message": "解除釘選已選取的內容",
+        "description": "String: Pin selected content"
+    },
+    "stringResetPinnedContentPosition": {
+        "message": "重設已釘選內容的位置",
+        "description": "String: Reset pinned content position"
+    },
+    "stringUnknownName": {
+        "message": "未知名稱",
+        "description": "String: Unknown name"
+    },
+    "stringClickToClose": {
+        "message": "點擊以關閉",
+        "description": "String: Click to close"
+    },
+    "stringDoubleClickToToggle": {
+        "message": "雙擊以開闔，或按住並拖曳以移動",
+        "description": "String: Double click to toggle, or hold and drag to move"
+    },
+    "stringSongList": {
+        "message": "歌曲清單",
+        "description": "String: SongList"
+    },
+    "messageTabIDIsUndefined": {
+        "message": "Tab id 為未定義。",
+        "description": "Message: Tab id is undefined."
+    },
+    "messageTabsIsEmpty": {
+        "message": "Tabs 是空的。",
+        "description": "Message: Tabs is empty."
+    },
+    "messageSelectTheCommentContentFirst": {
+        "message": "請先選擇留言內容！",
+        "description": "Message: Select the comment content first!"
+    },
+    "messageElemContainerIsUndefinedOrNull": {
+        "message": "elemContainer 為未定義或為 null。",
+        "description": "Message: elemContainer is undefined or null."
+    },
+    "messageElemHtml5VideoPlayerIsUndefinedOrNull": {
+        "message": "elemHtml5VideoPlayer 為未定義或為 null。",
+        "description": "Message: elemHtml5VideoPlayer is undefined or null."
+    },
+    "messageElemVideoIsUndefinedOrNull": {
+        "message": "elemVideo 為未定義或為 null。",
+        "description": "Message: elemVideo is undefined or null."
+    },
+    "messageTheVideoIDDoesNotMatch": {
+        "message": "影片 ID 不相符，請重新釘選留言內容。",
+        "description": "Message: The video ID does not match, please re-pin the comment content."
+    }
+}
