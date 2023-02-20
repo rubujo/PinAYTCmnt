@@ -36,7 +36,7 @@ export function doInit() {
             doPinSelectedContent();
         } else if (response === Function.CommandUnpinSelectedContent) {
             doRemovePinnedContentMainContainer();
-        } else if (response === Function.CommandPinSelectedContent) {
+        } else if (response === Function.CommandResetPinnedContentPosition) {
             doResetPinnedContentMainContainerPosition();
         } else if (response === Function.CommandTogglePinnedContent) {
             doTogglePinnedContentMainContainer();

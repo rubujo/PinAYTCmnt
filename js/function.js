@@ -15,6 +15,21 @@ export class Function {
     static CMID_PinSelectedContent = "CMID_PinSelectedContent";
 
     /**
+     * 共用的 ContextMenu 選項「解除釘選已選取的內容」的 ID 值
+     */
+    static CMID_UnpinSelectedContent = "CMID_UnpinSelectedContent";
+
+    /**
+     * 共用的 ContextMenu 選項「重設已釘選的內容的位置」的 ID 值
+     */
+    static CMID_ResetPinnedContentPosition = "CMID_ResetPinnedContentPosition";
+
+    /**
+     * 共用的 ContextMenu 選項「開闔已釘選的內容」的 ID 值
+     */
+    static CMID_TogglePinnedContent = "CMID_TogglePinnedContent";
+
+    /**
      * 指令：釘選已選取的內容
      */
     static CommandPinSelectedContent = "pinSelectedContent";

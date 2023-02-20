@@ -11,11 +11,50 @@ chrome.runtime.onInstalled.addListener(() => {
         ],
         id: Function.CMID_PinSelectedContent
     });
+
+    chrome.contextMenus.create({
+        title: chrome.i18n.getMessage("stringUnpinSelectedContent"),
+        contexts: ["page"],
+        documentUrlPatterns: [
+            "*://*.youtube.com/*"
+        ],
+        id: Function.CMID_UnpinSelectedContent
+    });
+
+    chrome.contextMenus.create({
+        title: chrome.i18n.getMessage("stringResetPinnedContentPosition"),
+        contexts: ["page"],
+        documentUrlPatterns: [
+            "*://*.youtube.com/*"
+        ],
+        id: Function.CMID_ResetPinnedContentPosition
+    });
+
+    chrome.contextMenus.create({
+        title: chrome.i18n.getMessage("stringTogglePinnedContent"),
+        contexts: ["page"],
+        documentUrlPatterns: [
+            "*://*.youtube.com/*"
+        ],
+        id: Function.CMID_TogglePinnedContent
+    });
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === Function.CMID_PinSelectedContent) {
         Function.sendMsg(Function.CommandPinSelectedContent, true).catch(error => {
+            Function.writeConsoleLog(error);
+        });
+    } else if (info.menuItemId === Function.CMID_UnpinSelectedContent) {
+        Function.sendMsg(Function.CommandUnpinSelectedContent, true).catch(error => {
+            Function.writeConsoleLog(error);
+        });
+    } else if (info.menuItemId === Function.CMID_ResetPinnedContentPosition) {
+        Function.sendMsg(Function.CommandResetPinnedContentPosition, true).catch(error => {
+            Function.writeConsoleLog(error);
+        });
+    } else if (info.menuItemId === Function.CMID_TogglePinnedContent) {
+        Function.sendMsg(Function.CommandTogglePinnedContent, true).catch(error => {
             Function.writeConsoleLog(error);
         });
     }
@@ -56,6 +95,33 @@ function updateExtensionApperance() {
     // 更新 contextMenus 的 title。
     chrome.contextMenus.update(Function.CMID_PinSelectedContent, {
         title: chrome.i18n.getMessage("stringPinSelectedContent"),
+    }, () => {
+        if (chrome.runtime.lastError?.message) {
+            Function.writeConsoleLog(chrome.runtime.lastError?.message);
+        }
+    });
+
+    // 更新 contextMenus 的 title。
+    chrome.contextMenus.update(Function.CMID_UnpinSelectedContent, {
+        title: chrome.i18n.getMessage("stringUnpinSelectedContent"),
+    }, () => {
+        if (chrome.runtime.lastError?.message) {
+            Function.writeConsoleLog(chrome.runtime.lastError?.message);
+        }
+    });
+
+    // 更新 contextMenus 的 title。
+    chrome.contextMenus.update(Function.CMID_ResetPinnedContentPosition, {
+        title: chrome.i18n.getMessage("stringResetPinnedContentPosition"),
+    }, () => {
+        if (chrome.runtime.lastError?.message) {
+            Function.writeConsoleLog(chrome.runtime.lastError?.message);
+        }
+    });
+
+    // 更新 contextMenus 的 title。
+    chrome.contextMenus.update(Function.CMID_TogglePinnedContent, {
+        title: chrome.i18n.getMessage("stringTogglePinnedContent"),
     }, () => {
         if (chrome.runtime.lastError?.message) {
             Function.writeConsoleLog(chrome.runtime.lastError?.message);
