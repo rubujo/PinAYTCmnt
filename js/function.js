@@ -235,7 +235,7 @@ export class Function {
         let totalPushCount = 0;
 
         tempNode2DArray.forEach((nodeArray) => {
-            let pushCount = 0;
+            let pushCount = 0, overValue = -1;
 
             nodeArray.forEach((node, childIndex, array) => {
                 if (node instanceof HTMLAnchorElement) {
@@ -266,10 +266,31 @@ export class Function {
                         tempNameStr += textContent;
                     }
                 } else if (node instanceof HTMLSpanElement) {
-                    // 當 array 的長度大於 3 時，排除第一個時間標記前的任何字串。
-                    if (array.length > 3 && childIndex === 0) {
-                        // 不進行任何處理。
-                        return;
+                    // 判斷 array 的長度是否大於 3。
+                    if (array.length > 3) {
+                        // 判斷 array 的長度是否大於 5。
+                        if (array.length > 5) {
+                            // 當 overValue 為 -1 時，設定 overValue 的值。
+                            if (overValue === -1) {
+                                overValue = array.length - 5;
+                            }
+
+                            // 判斷 childIndex 是否小於 overValue，
+                            // 排除第一個時間標記前的任何字串。
+                            if (childIndex <= overValue) {
+                                // 不進行任何處理。
+                                return;
+                            } else {
+                                // 重設 overValue。
+                                overValue = -1;
+                            }
+                        } else {
+                            // 排除第一個時間標記前的任何字串。
+                            if (childIndex === 0) {
+                                // 不進行任何處理。
+                                return;
+                            }
+                        }
                     }
 
                     // 去掉換行字元跟移除開頭的空白。
