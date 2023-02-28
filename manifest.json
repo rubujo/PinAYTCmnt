@@ -2,7 +2,7 @@
     "name": "__MSG_appName__",
     "description": "__MSG_appDesc__",
     "default_locale": "en",
-    "version": "1.3.3",
+    "version": "1.4.0",
     "manifest_version": 3,
     "permissions": [
         "contextMenus"
@@ -46,6 +46,9 @@
         "pinSelectedContent": {
             "suggested_key": "Alt+Shift+U",
             "description": "__MSG_stringPinSelectedContent__"
+        },
+        "appendPinSelectedContent": {
+            "description": "__MSG_stringAppendPinSelectedContent__"
         },
         "unpinSelectedContent": {
             "suggested_key": "Alt+Shift+Y",

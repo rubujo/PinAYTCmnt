@@ -15,6 +15,11 @@ export class Function {
     static CMID_PinSelectedContent = "CMID_PinSelectedContent";
 
     /**
+     * 共用的 ContextMenu 選項「附加釘選已選取的內容」的 ID 值
+     */
+    static CMID_AppendPinSelectedContent = "CMID_AppendPinSelectedContent";
+
+    /**
      * 共用的 ContextMenu 選項「解除釘選已選取的內容」的 ID 值
      */
     static CMID_UnpinSelectedContent = "CMID_UnpinSelectedContent";
@@ -33,6 +38,11 @@ export class Function {
      * 指令：釘選已選取的內容
      */
     static CommandPinSelectedContent = "pinSelectedContent";
+
+    /**
+     * 指令：附加釘選已選取的內容
+     */
+    static CommandAppendPinSelectedContent = "appendPinSelectedContent";
 
     /**
      * 指令：解除釘選已選取的內容
@@ -238,12 +248,6 @@ export class Function {
             let pushCount = 0, overValue = -1;
 
             nodeArray.forEach((node, childIndex, array) => {
-                // 判斷 array 的長度是否小於 3，理論上不應該小於 3。
-                if (array.length < 3) {
-                    // 不進行任何處理。
-                    return;
-                }
-
                 if (node instanceof HTMLAnchorElement) {
                     const textContent = node.textContent ?? "";
 

@@ -11,6 +11,10 @@
         "message": "钉选已选取的内容",
         "description": "String: Pin selected content"
     },
+    "stringAppendPinSelectedContent": {
+        "message": "附加钉选已选取的内容",
+        "description": "String: Append pin selected content"
+    },
     "stringUnpinSelectedContent": {
         "message": "解除钉选已选取的内容",
         "description": "String: Pin selected content"
@@ -30,6 +34,18 @@
     "stringClickToClose": {
         "message": "点击以关闭",
         "description": "String: Click to close"
+    },
+    "stringClickToDelete": {
+        "message": "点击以删除",
+        "description": "String: Click to delete"
+    },
+    "stringClickToPlay": {
+        "message": "点击以播放",
+        "description": "String: Click to play"
+    },
+    "stringClickToEdit": {
+        "message": "点击以编辑",
+        "description": "String: Click to edit"
     },
     "stringDoubleClickToToggle": {
         "message": "双击以开阖，或按住并拖曳以移动",
@@ -66,5 +82,9 @@
     "messageTheVideoIDDoesNotMatch": {
         "message": "视频 ID 不相符，请重新钉选留言内容。",
         "description": "Message: The video ID does not match, please re-pin the comment content."
+    },
+    "messageElemPinnedContentContentsContainerIsUndefinedOrNull": {
+        "message": "elemPinnedContentContentsContainer 为未定义或为 null。",
+        "description": "Message: elemVideo is undefined or null."
     }
 }

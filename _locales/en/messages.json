@@ -11,6 +11,10 @@
         "message": "Pin selected content",
         "description": "String: Pin selected content"
     },
+    "stringAppendPinSelectedContent": {
+        "message": "Append pin selected content",
+        "description": "String: Append pin selected content"
+    },
     "stringUnpinSelectedContent": {
         "message": "Unpin selected content",
         "description": "String: Unpin selected content"
@@ -30,6 +34,18 @@
     "stringClickToClose": {
         "message": "Click to close",
         "description": "String: Click to close"
+    },
+    "stringClickToDelete": {
+        "message": "Click to delete",
+        "description": "String: Click to delete"
+    },
+    "stringClickToPlay": {
+        "message": "Click to play",
+        "description": "String: Click to play"
+    },
+    "stringClickToEdit": {
+        "message": "Click to edit",
+        "description": "String: Click to edit"
     },
     "stringDoubleClickToToggle": {
         "message": "Double click to toggle, or hold and drag to move",
@@ -66,5 +82,9 @@
     "messageTheVideoIDDoesNotMatch": {
         "message": "The video ID does not match, please re-pin the comment content.",
         "description": "Message: The video ID does not match, please re-pin the comment content."
+    },
+    "messageElemPinnedContentContentsContainerIsUndefinedOrNull": {
+        "message": "elemPinnedContentContentsContainer is undefined or null.",
+        "description": "Message: elemVideo is undefined or null."
     }
 }

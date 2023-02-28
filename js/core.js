@@ -34,6 +34,8 @@ export function doInit() {
     chrome.runtime.onMessage.addListener((response, _sender, _sendResponse) => {
         if (response === Function.CommandPinSelectedContent) {
             doPinSelectedContent();
+        } else if (response === Function.CommandAppendPinSelectedContent) {
+            doAppendPinSelectedContent();
         } else if (response === Function.CommandUnpinSelectedContent) {
             doRemovePinnedContentMainContainer();
         } else if (response === Function.CommandResetPinnedContentPosition) {
@@ -44,9 +46,11 @@ export function doInit() {
     });
 
     /**
-     * 執行釘選已選取的內容
+     * 執行處理資料
+     *
+     * @param {HTMLDivElement} elemPinnedContentContentsContainer
      */
-    function doPinSelectedContent() {
+    function doProcessData(elemPinnedContentContentsContainer) {
         // 取得已選取的 YouTube 留言內容。
         const dataSet = Function.extractYouTubeComment();
 
@@ -131,6 +135,83 @@ export function doInit() {
         // 清除 dataSet。
         dataSet.length = 0;
 
+        // 產生已釘選的內容的內容。
+        processedDataSet.forEach((item) => {
+            // 0：影片 ID、1：開始秒數、2：歌名。
+            const tempArray = item.split(Function.Seperator),
+                videoID = tempArray[0],
+                startSeconds = tempArray[1],
+                timestamp = Function.convertToYTTimestamp(startSeconds),
+                songName = tempArray[2];
+
+            if (timestamp.indexOf(NaN) !== -1) {
+                return;
+            }
+
+            const elemP = document.createElement("p"),
+                elemDel = document.createElement("a"),
+                elemSpace1 = document.createElement("span"),
+                elemTimestamp = document.createElement("a"),
+                elemSpace2 = document.createElement("span"),
+                elemName = document.createElement("span");
+
+            elemP.style.fontSize = "1.4rem"
+
+            elemSpace1.textContent = " ";
+            elemSpace2.textContent = " ";
+
+            elemDel.text = "[X]";
+            elemDel.title = chrome.i18n.getMessage("stringClickToDelete");
+            elemDel.href = "javascript:void(0);";
+            elemDel.style.color = "#FF0000";
+            elemDel.addEventListener("mouseover", (event) => {
+                event.preventDefault();
+
+                elemDel.style.color = "#FFFFFF";
+            });
+            elemDel.addEventListener("mouseout", (event) => {
+                event.preventDefault();
+
+                elemDel.style.color = "#FF0000";
+            });
+            elemDel.addEventListener("click", (event) => {
+                event.preventDefault();
+
+                elemP.remove();
+            });
+
+            elemP.appendChild(elemDel);
+
+            elemTimestamp.text = timestamp;
+            elemTimestamp.title = chrome.i18n.getMessage("stringClickToPlay");
+            elemTimestamp.href = `/watch?v=${videoID}&t=${startSeconds}s`;
+            elemTimestamp.style.color = "#FFFF00";
+
+            doAddAnchorEvents(elemTimestamp);
+
+            elemP.appendChild(elemSpace1);
+            elemP.appendChild(elemTimestamp);
+
+            elemName.textContent = songName;
+            elemName.title = chrome.i18n.getMessage("stringClickToEdit");
+            elemName.contentEditable = true;
+            elemName.style.color = "#FFFFFF";
+            elemName.style.marginRight = "8px";
+
+            elemP.appendChild(elemSpace2);
+            elemP.appendChild(elemName);
+
+            elemPinnedContentContentsContainer.appendChild(elemP);
+        });
+
+        // 清除 processedDataSet。
+        processedDataSet.length = 0;
+    }
+
+    /**
+     * 執行建立 UI
+     */
+    function doCreateUI() {
         const elemPinnedContentMainContainer = document.createElement("div"),
             elemPinnedContentTitleContainer = document.createElement("div"),
             elemPinnedContentTitle = document.createElement("div"),
@@ -276,49 +357,53 @@ export function doInit() {
         elemPinnedContentContentsContainer.style.overflowY = "auto";
         elemPinnedContentContentsContainer.style.scrollbarColor = "#FFFFFF";
 
-        // 產生已釘選的內容的內容。
-        processedDataSet.forEach((item) => {
-            // 0：影片 ID、1：開始秒數、2：歌名。
-            const tempArray = item.split(Function.Seperator),
-                videoID = tempArray[0],
-                startSeconds = tempArray[1],
-                timestamp = Function.convertToYTTimestamp(startSeconds),
-                songName = tempArray[2];
-
-            if (timestamp.indexOf(NaN) !== -1) {
-                return;
-            }
-
-            const elemP = document.createElement("p"),
-                elemA = document.createElement("a"),
-                elemSpan = document.createElement("span");
-
-            elemP.style.fontSize = "1.4rem"
-
-            elemA.text = timestamp;
-            elemA.href = `/watch?v=${videoID}&t=${startSeconds}s`;
-            elemA.style.color = "#FFFF00";
-
-            doAddAnchorEvents(elemA);
-
-            elemP.appendChild(elemA);
-
-            elemSpan.textContent = ` ${songName}`;
-            elemSpan.contentEditable = true;
-            elemSpan.style.color = "#FFFFFF";
-            elemSpan.style.marginRight = "8px";
-
-            elemP.appendChild(elemSpan);
-
-            elemPinnedContentContentsContainer.appendChild(elemP);
-        });
-
-        // 清除 processedDataSet。
-        processedDataSet.length = 0;
-
         elemPinnedContentMainContainer.appendChild(elemPinnedContentContentsContainer);
 
         doCreateOrUpdateTempContainer(elemPinnedContentMainContainer);
+    }
+
+    /**
+     * 執行釘選已選取的內容
+     */
+    function doPinSelectedContent() {
+        // 每次都重新建立 UI。
+        doCreateUI();
+
+        const elemPinnedContentContentsContainer = document.getElementById("dPinnedContentContentsContainer");
+
+        if (elemPinnedContentContentsContainer === undefined ||
+            elemPinnedContentContentsContainer === null) {
+            console.error(chrome.i18n.getMessage("messageElemPinnedContentContentsContainerIsUndefinedOrNull"));
+
+            return;
+        }
+
+        doProcessData(elemPinnedContentContentsContainer);
+    }
+
+    /**
+     * 執行附加釘選已選取的內容
+     */
+    function doAppendPinSelectedContent() {
+        let elemPinnedContentContentsContainer = document.getElementById("dPinnedContentContentsContainer");
+
+        if (elemPinnedContentContentsContainer === undefined ||
+            elemPinnedContentContentsContainer === null) {
+            // 當 UI 不存在時才重新建立 UI。
+            doCreateUI();
+        }
+
+        elemPinnedContentContentsContainer = document.getElementById("dPinnedContentContentsContainer");
+
+        if (elemPinnedContentContentsContainer === undefined ||
+            elemPinnedContentContentsContainer === null) {
+            console.error(chrome.i18n.getMessage("messageElemPinnedContentContentsContainerIsUndefinedOrNull"));
+
+            return;
+        }
+
+        doProcessData(elemPinnedContentContentsContainer);
+        doReturnToVideo();
     }
 
     /**
@@ -361,6 +446,21 @@ export function doInit() {
 
         if (elemPinnedContentContentsContainer !== undefined && elemPinnedContentContentsContainer !== null) {
             htmlElement.style.minWidth = `${elemPinnedContentContentsContainer.clientWidth}px`;
+        }
+
+        doReturnToVideo();
+    }
+
+    /**
+     * 執行回到 Video 標籤的位置
+     */
+    function doReturnToVideo() {
+        const elemVideo = document.querySelector("video");
+
+        if (elemVideo === undefined || elemVideo === null) {
+            console.error(chrome.i18n.getMessage("messageElemVideoIsUndefinedOrNull"));
+
+            return;
         }
 
         // 回到影片播放器的位置。
@@ -436,6 +536,9 @@ export function doInit() {
             if (event.shiftKey && event.code === "KeyU" && isYouTubeVideo) {
                 // 判斷目前所在頁面的網址及按下的按鍵是否為 Shift + U 鍵。
                 doPinSelectedContent();
+            } else if (event.shiftKey && event.code === "KeyQ" && isYouTubeVideo) {
+                // 判斷目前所在頁面的網址及按下的按鍵是否為 Shift + Q 鍵。
+                doAppendPinSelectedContent();
             } else if (event.shiftKey && event.code === "KeyY" && isYouTubeVideo) {
                 // 判斷目前所在頁面的網址及按下的按鍵是否為 Shift + Y 鍵。
                 doRemovePinnedContentMainContainer();

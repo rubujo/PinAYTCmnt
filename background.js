@@ -13,6 +13,15 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 
     chrome.contextMenus.create({
+        title: chrome.i18n.getMessage("stringAppendPinSelectedContent"),
+        contexts: ["selection"],
+        documentUrlPatterns: [
+            "*://*.youtube.com/*"
+        ],
+        id: Function.CMID_AppendPinSelectedContent
+    });
+
+    chrome.contextMenus.create({
         title: chrome.i18n.getMessage("stringUnpinSelectedContent"),
         contexts: ["page"],
         documentUrlPatterns: [
@@ -45,6 +54,10 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         Function.sendMsg(Function.CommandPinSelectedContent, true).catch(error => {
             Function.writeConsoleLog(error);
         });
+    } else if (info.menuItemId === Function.CMID_AppendPinSelectedContent) {
+        Function.sendMsg(Function.CommandAppendPinSelectedContent, true).catch(error => {
+            Function.writeConsoleLog(error);
+        });
     } else if (info.menuItemId === Function.CMID_UnpinSelectedContent) {
         Function.sendMsg(Function.CommandUnpinSelectedContent, true).catch(error => {
             Function.writeConsoleLog(error);
@@ -62,6 +75,10 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
 chrome.commands.onCommand.addListener((command) => {
     if (command === Function.CommandPinSelectedContent) {
+        Function.sendMsg(command, false).catch(error => {
+            Function.writeConsoleLog(error);
+        });
+    } else if (command === Function.CommandAppendPinSelectedContent) {
         Function.sendMsg(command, false).catch(error => {
             Function.writeConsoleLog(error);
         });
@@ -95,6 +112,15 @@ function updateExtensionApperance() {
     // 更新 contextMenus 的 title。
     chrome.contextMenus.update(Function.CMID_PinSelectedContent, {
         title: chrome.i18n.getMessage("stringPinSelectedContent"),
+    }, () => {
+        if (chrome.runtime.lastError?.message) {
+            Function.writeConsoleLog(chrome.runtime.lastError?.message);
+        }
+    });
+
+    // 更新 contextMenus 的 title。
+    chrome.contextMenus.update(Function.CMID_AppendPinSelectedContent, {
+        title: chrome.i18n.getMessage("stringAppendPinSelectedContent"),
     }, () => {
         if (chrome.runtime.lastError?.message) {
             Function.writeConsoleLog(chrome.runtime.lastError?.message);
