@@ -1,5 +1,6 @@
 "use strict";
 
+import { MessageSet, CommandSet, StringSet } from "./dataSet.js";
 import { Function } from "./function.js";
 
 /**
@@ -15,7 +16,7 @@ export function doInit() {
         coordinateXY = [0, 0];
 
     // 傳送訊息至 Background.js。
-    chrome.runtime.sendMessage(Function.MessageWakeUp);
+    chrome.runtime.sendMessage(MessageSet.WakeUp);
 
     // 延後 300 毫秒後再執行。
     const timer = setTimeout(() => {
@@ -32,16 +33,33 @@ export function doInit() {
      * 接收來自 background.js 的訊息
      */
     chrome.runtime.onMessage.addListener((response, _sender, _sendResponse) => {
-        if (response === Function.CommandPinSelectedContent) {
+        if (response === CommandSet.PinSelectedContent) {
             doPinSelectedContent();
-        } else if (response === Function.CommandAppendPinSelectedContent) {
+
+            // 為 sendResponse 保留訊息傳送頻道開啟。
+            return true;
+        } else if (response === CommandSet.AppendPinSelectedContent) {
             doAppendPinSelectedContent();
-        } else if (response === Function.CommandUnpinSelectedContent) {
+
+            // 為 sendResponse 保留訊息傳送頻道開啟。
+            return true;
+        } else if (response === CommandSet.UnpinSelectedContent) {
             doRemovePinnedContentMainContainer();
-        } else if (response === Function.CommandResetPinnedContentPosition) {
+
+            // 為 sendResponse 保留訊息傳送頻道開啟。
+            return true;
+        } else if (response === CommandSet.ResetPinnedContentPosition) {
             doResetPinnedContentMainContainerPosition();
-        } else if (response === Function.CommandTogglePinnedContent) {
+
+            // 為 sendResponse 保留訊息傳送頻道開啟。
+            return true;
+        } else if (response === CommandSet.TogglePinnedContent) {
             doTogglePinnedContentMainContainer();
+
+            // 為 sendResponse 保留訊息傳送頻道開啟。
+            return true;
+        } else {
+            Function.writeConsoleLog(response);
         }
     });
 
@@ -60,7 +78,7 @@ export function doInit() {
             return;
         }
 
-        // TODO: 2023-02-16 未來可能會需要再調整。
+        // TODO: 2023/2/16 未來可能會需要再調整。
         // 前處理資料。
 
         const processedDataSet = [];
@@ -71,7 +89,7 @@ export function doInit() {
 
         dataSet.forEach((item) => {
             // 0：影片 ID、1：開始秒數、2：歌名。
-            const tempArray = item.split(Function.Seperator),
+            const tempArray = item.split(StringSet.Separator),
                 videoID = tempArray[0],
                 startSeconds = tempArray[1],
                 timestamp = Function.convertToYTTimestamp(startSeconds),
@@ -81,25 +99,43 @@ export function doInit() {
                 return;
             }
 
-            let notMatchSeperatorCase = true;
+            let notMatchSeparatorCase = true;
 
             // 分隔符號案例。
-            const seperatorCase = [
+            const separatorCase = [
                 // 空值不是分隔符號。
                 "",
-                "-", "- ", " - ", " -",
-                "~", "~ ", " ~ ", " ~",
-                "、", "、 ", " 、 ", " 、",
-                "～", "～ ", " ～ ", " ～",
-                ",", ", ", " , ", " ,",
-                "，", "， ", " ， ", " ，"
+                "-",
+                "- ",
+                " - ",
+                " -",
+                "~",
+                "~ ",
+                " ~ ",
+                " ~",
+                "、",
+                "、 ",
+                " 、 ",
+                " 、",
+                "～",
+                "～ ",
+                " ～ ",
+                " ～",
+                ",",
+                ", ",
+                " , ",
+                " ,",
+                "，",
+                "， ",
+                " ， ",
+                " ，",
             ];
 
-            for (let i = 0; i < seperatorCase.length; i++) {
-                const seperator = seperatorCase[i];
+            for (let i = 0; i < separatorCase.length; i++) {
+                const separator = separatorCase[i];
 
-                if (songName === seperator) {
-                    notMatchSeperatorCase = false;
+                if (songName === separator) {
+                    notMatchSeparatorCase = false;
 
                     break;
                 }
@@ -107,10 +143,10 @@ export function doInit() {
 
             // 判斷 songName 是否不為空值、"-" 或是 "~"（以及相關的數種組合）。
             // 當 songName 為上列值時，則表示留言內是用該值分隔開始與結束時間。
-            if (notMatchSeperatorCase) {
+            if (notMatchSeparatorCase) {
                 if (isStartEndFormat) {
-                    const newItem = `${tempVideoID}${Function.Seperator}` +
-                        `${tempStartSeconds}${Function.Seperator}` +
+                    const newItem = `${tempVideoID}${StringSet.Separator}` +
+                        `${tempStartSeconds}${StringSet.Separator}` +
                         `${songName}`;
 
                     processedDataSet.push(newItem);
@@ -119,8 +155,8 @@ export function doInit() {
                     tempVideoID = "";
                     tempStartSeconds = "";
                 } else {
-                    const newItem = `${videoID}${Function.Seperator}` +
-                        `${startSeconds}${Function.Seperator}` +
+                    const newItem = `${videoID}${StringSet.Separator}` +
+                        `${startSeconds}${StringSet.Separator}` +
                         `${songName}`;
 
                     processedDataSet.push(newItem);
@@ -138,7 +174,7 @@ export function doInit() {
         // 產生已釘選的內容的內容。
         processedDataSet.forEach((item) => {
             // 0：影片 ID、1：開始秒數、2：歌名。
-            const tempArray = item.split(Function.Seperator),
+            const tempArray = item.split(StringSet.Separator),
                 videoID = tempArray[0],
                 startSeconds = tempArray[1],
                 timestamp = Function.convertToYTTimestamp(startSeconds),
@@ -155,7 +191,7 @@ export function doInit() {
                 elemSpace2 = document.createElement("span"),
                 elemName = document.createElement("span");
 
-            elemP.style.fontSize = "1.4rem"
+            elemP.style.fontSize = "1.4rem";
 
             elemSpace1.textContent = " ";
             elemSpace2.textContent = " ";
@@ -220,7 +256,8 @@ export function doInit() {
             elemPinnedContentContentsContainer = document.createElement("div");
 
         elemPinnedContentMainContainer.id = "dPinnedContentMainContainer";
-        elemPinnedContentMainContainer.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
+        elemPinnedContentMainContainer.style.backgroundColor =
+            "rgba(0, 0, 0, 0.75)";
         elemPinnedContentMainContainer.style.borderRadius = "12px";
         elemPinnedContentMainContainer.style.margin = "8px";
         elemPinnedContentMainContainer.style.padding = "8px";
@@ -244,11 +281,13 @@ export function doInit() {
         elemPinnedContentTitle.addEventListener("mousedown", (event) => {
             isDownAnHold = true;
 
-            if (elemPinnedContentMainContainer.style.transform === null ||
-                elemPinnedContentMainContainer.style.transform === "") {
+            if (
+                elemPinnedContentMainContainer.style.transform === null ||
+                elemPinnedContentMainContainer.style.transform === ""
+            ) {
                 offset = [
                     elemPinnedContentMainContainer.offsetLeft - event.clientX,
-                    elemPinnedContentMainContainer.offsetTop - event.clientY
+                    elemPinnedContentMainContainer.offsetTop - event.clientY,
                 ];
             } else {
                 // 來源：https://stackoverflow.com/a/52733535
@@ -262,7 +301,7 @@ export function doInit() {
 
                 offset = [
                     currentX - event.clientX,
-                    currentY - event.clientY
+                    currentY - event.clientY,
                 ];
             }
         });
@@ -288,21 +327,26 @@ export function doInit() {
 
                 coordinateXY = [
                     event.clientX + offset[0],
-                    event.clientY + offset[1]
+                    event.clientY + offset[1],
                 ];
             }
         });
 
         // 來源：https://stackoverflow.com/a/46484405
         window.requestAnimationFrame(function animation() {
-            elemPinnedContentMainContainer.style.transform = `translate(${coordinateXY[0]}px, ${coordinateXY[1]}px)`;
+            elemPinnedContentMainContainer.style.transform = `translate(${coordinateXY[0]
+                }px, ${coordinateXY[1]}px)`;
 
             window.requestAnimationFrame(animation);
         });
 
-        elemPinnedContentTitle.id = "dPinnedContentTitle"
-        elemPinnedContentTitle.textContent = chrome.i18n.getMessage("stringPinnedContent");
-        elemPinnedContentTitle.title = chrome.i18n.getMessage("stringDoubleClickToToggle");
+        elemPinnedContentTitle.id = "dPinnedContentTitle";
+        elemPinnedContentTitle.textContent = chrome.i18n.getMessage(
+            "stringPinnedContent",
+        );
+        elemPinnedContentTitle.title = chrome.i18n.getMessage(
+            "stringDoubleClickToToggle",
+        );
         elemPinnedContentTitle.style.color = "#FFFFFF";
         elemPinnedContentTitle.style.fontSize = "1.5rem";
         elemPinnedContentTitle.style.fontWeight = "bold";
@@ -316,7 +360,8 @@ export function doInit() {
                 elemPinnedContentMainContainer,
                 elemPinnedContentTitleContainer,
                 elemPinnedContentTitle,
-                elemPinnedContentContentsContainer);
+                elemPinnedContentContentsContainer,
+            );
         });
 
         elemBtnCloseContainer.style.flex = "auto";
@@ -357,7 +402,9 @@ export function doInit() {
         elemPinnedContentContentsContainer.style.overflowY = "auto";
         elemPinnedContentContentsContainer.style.scrollbarColor = "#FFFFFF";
 
-        elemPinnedContentMainContainer.appendChild(elemPinnedContentContentsContainer);
+        elemPinnedContentMainContainer.appendChild(
+            elemPinnedContentContentsContainer,
+        );
 
         doCreateOrUpdateTempContainer(elemPinnedContentMainContainer);
     }
@@ -369,11 +416,19 @@ export function doInit() {
         // 每次都重新建立 UI。
         doCreateUI();
 
-        const elemPinnedContentContentsContainer = document.getElementById("dPinnedContentContentsContainer");
+        const elemPinnedContentContentsContainer = document.getElementById(
+            "dPinnedContentContentsContainer",
+        );
 
-        if (elemPinnedContentContentsContainer === undefined ||
-            elemPinnedContentContentsContainer === null) {
-            console.error(chrome.i18n.getMessage("messageElemPinnedContentContentsContainerIsUndefinedOrNull"));
+        if (
+            elemPinnedContentContentsContainer === undefined ||
+            elemPinnedContentContentsContainer === null
+        ) {
+            console.error(
+                chrome.i18n.getMessage(
+                    "messageElemPinnedContentContentsContainerIsUndefinedOrNull",
+                ),
+            );
 
             return;
         }
@@ -385,19 +440,31 @@ export function doInit() {
      * 執行附加釘選已選取的內容
      */
     function doAppendPinSelectedContent() {
-        let elemPinnedContentContentsContainer = document.getElementById("dPinnedContentContentsContainer");
+        let elemPinnedContentContentsContainer = document.getElementById(
+            "dPinnedContentContentsContainer",
+        );
 
-        if (elemPinnedContentContentsContainer === undefined ||
-            elemPinnedContentContentsContainer === null) {
+        if (
+            elemPinnedContentContentsContainer === undefined ||
+            elemPinnedContentContentsContainer === null
+        ) {
             // 當 UI 不存在時才重新建立 UI。
             doCreateUI();
         }
 
-        elemPinnedContentContentsContainer = document.getElementById("dPinnedContentContentsContainer");
+        elemPinnedContentContentsContainer = document.getElementById(
+            "dPinnedContentContentsContainer",
+        );
 
-        if (elemPinnedContentContentsContainer === undefined ||
-            elemPinnedContentContentsContainer === null) {
-            console.error(chrome.i18n.getMessage("messageElemPinnedContentContentsContainerIsUndefinedOrNull"));
+        if (
+            elemPinnedContentContentsContainer === undefined ||
+            elemPinnedContentContentsContainer === null
+        ) {
+            console.error(
+                chrome.i18n.getMessage(
+                    "messageElemPinnedContentContentsContainerIsUndefinedOrNull",
+                ),
+            );
 
             return;
         }
@@ -415,7 +482,9 @@ export function doInit() {
         const elemContainer = document.querySelector(".style-scope.ytd-player");
 
         if (elemContainer === undefined || elemContainer === null) {
-            console.error(chrome.i18n.getMessage("messageElemContainerIsUndefinedOrNull"));
+            console.error(
+                chrome.i18n.getMessage("messageElemContainerIsUndefinedOrNull"),
+            );
 
             return;
         }
@@ -423,7 +492,9 @@ export function doInit() {
         const elemHtml5VideoPlayer = document.querySelector(".html5-video-player");
 
         if (elemHtml5VideoPlayer === undefined || elemHtml5VideoPlayer === null) {
-            console.error(chrome.i18n.getMessage("messageElemHtml5VideoPlayerIsUndefinedOrNull"));
+            console.error(
+                chrome.i18n.getMessage("messageElemHtml5VideoPlayerIsUndefinedOrNull"),
+            );
 
             return;
         }
@@ -431,7 +502,9 @@ export function doInit() {
         const elemVideo = document.querySelector("video");
 
         if (elemVideo === undefined || elemVideo === null) {
-            console.error(chrome.i18n.getMessage("messageElemVideoIsUndefinedOrNull"));
+            console.error(
+                chrome.i18n.getMessage("messageElemVideoIsUndefinedOrNull"),
+            );
 
             return;
         }
@@ -442,10 +515,16 @@ export function doInit() {
         elemContainer.insertBefore(htmlElement, elemHtml5VideoPlayer);
 
         // 設定 dPinnedContentMainContainer 的最小寬度。
-        const elemPinnedContentContentsContainer = document.getElementById("dPinnedContentContentsContainer");
+        const elemPinnedContentContentsContainer = document.getElementById(
+            "dPinnedContentContentsContainer",
+        );
 
-        if (elemPinnedContentContentsContainer !== undefined && elemPinnedContentContentsContainer !== null) {
-            htmlElement.style.minWidth = `${elemPinnedContentContentsContainer.clientWidth}px`;
+        if (
+            elemPinnedContentContentsContainer !== undefined &&
+            elemPinnedContentContentsContainer !== null
+        ) {
+            htmlElement.style.minWidth =
+                `${elemPinnedContentContentsContainer.clientWidth}px`;
         }
 
         doReturnToVideo();
@@ -458,7 +537,9 @@ export function doInit() {
         const elemVideo = document.querySelector("video");
 
         if (elemVideo === undefined || elemVideo === null) {
-            console.error(chrome.i18n.getMessage("messageElemVideoIsUndefinedOrNull"));
+            console.error(
+                chrome.i18n.getMessage("messageElemVideoIsUndefinedOrNull"),
+            );
 
             return;
         }
@@ -495,7 +576,9 @@ export function doInit() {
             const elemVideo = document.querySelector("video");
 
             if (elemVideo === undefined || elemVideo === null) {
-                console.error(chrome.i18n.getMessage("messageElemVideoIsUndefinedOrNull"));
+                console.error(
+                    chrome.i18n.getMessage("messageElemVideoIsUndefinedOrNull"),
+                );
 
                 return;
             }
@@ -509,7 +592,7 @@ export function doInit() {
             if (tempArray1[0] === "") {
                 // 理論上應處於畫中畫模式。
 
-                // TODO: 2023-02-16 暫時先不進行任何處理。
+                // TODO: 2023/2/16 暫時先不進行任何處理。
             } else if (tempArray1[0] !== tempArray2[0]) {
                 // 移除 PinnedContentMainContainer。
                 doRemovePinnedContentMainContainer();
@@ -572,20 +655,23 @@ export function doInit() {
             "background: rgba(255, 255, 255, 0.3);" +
             "border-radius: 12px;" +
             "}";
+        const cssSet = [css1, css2, css3, css4];
 
-        Function.insertStyleSheetRule(css1);
-        Function.insertStyleSheetRule(css2);
-        Function.insertStyleSheetRule(css3);
-        Function.insertStyleSheetRule(css4);
+        Function.insertStyleSheetRules(cssSet);
     }
 
     /**
      * 執行移除 PinnedContentMainContainer
      */
     function doRemovePinnedContentMainContainer() {
-        const elemPinnedContentMainContainer = document.getElementById("dPinnedContentMainContainer");
+        const elemPinnedContentMainContainer = document.getElementById(
+            "dPinnedContentMainContainer",
+        );
 
-        if (elemPinnedContentMainContainer !== undefined && elemPinnedContentMainContainer !== null) {
+        if (
+            elemPinnedContentMainContainer !== undefined &&
+            elemPinnedContentMainContainer !== null
+        ) {
             elemPinnedContentMainContainer.remove();
         }
     }
@@ -594,13 +680,18 @@ export function doInit() {
      * 執行重設 PinnedContentMainContainer 的位置
      */
     function doResetPinnedContentMainContainerPosition() {
-        const elemPinnedContentMainContainer = document.getElementById("dPinnedContentMainContainer");
+        const elemPinnedContentMainContainer = document.getElementById(
+            "dPinnedContentMainContainer",
+        );
 
-        if (elemPinnedContentMainContainer !== undefined && elemPinnedContentMainContainer !== null) {
+        if (
+            elemPinnedContentMainContainer !== undefined &&
+            elemPinnedContentMainContainer !== null
+        ) {
             coordinateXY = [
                 elemPinnedContentMainContainer.offsetLeft,
-                elemPinnedContentMainContainer.offsetTop
-            ]
+                elemPinnedContentMainContainer.offsetTop,
+            ];
         }
     }
 
@@ -616,14 +707,18 @@ export function doInit() {
         elemPinnedContentMainContainer = null,
         elemPinnedContentTitleContainer = null,
         elemPinnedContentTitle = null,
-        elemPinnedContentContentsContainer = null) {
-
+        elemPinnedContentContentsContainer = null,
+    ) {
         if (elemPinnedContentMainContainer === null) {
-            elemPinnedContentMainContainer = document.getElementById("dPinnedContentMainContainer");
+            elemPinnedContentMainContainer = document.getElementById(
+                "dPinnedContentMainContainer",
+            );
         }
 
         if (elemPinnedContentTitleContainer === null) {
-            elemPinnedContentTitleContainer = document.getElementById("dPinnedContentTitleContainer");
+            elemPinnedContentTitleContainer = document.getElementById(
+                "dPinnedContentTitleContainer",
+            );
         }
 
         if (elemPinnedContentTitle === null) {
@@ -631,17 +726,21 @@ export function doInit() {
         }
 
         if (elemPinnedContentContentsContainer === null) {
-            elemPinnedContentContentsContainer = document.getElementById("dPinnedContentContentsContainer");
+            elemPinnedContentContentsContainer = document.getElementById(
+                "dPinnedContentContentsContainer",
+            );
         }
 
-        if (elemPinnedContentMainContainer !== undefined &&
+        if (
+            elemPinnedContentMainContainer !== undefined &&
             elemPinnedContentMainContainer !== null &&
             elemPinnedContentTitleContainer !== undefined &&
             elemPinnedContentTitleContainer !== null &&
             elemPinnedContentTitle !== undefined &&
             elemPinnedContentTitle !== null &&
             elemPinnedContentContentsContainer !== undefined &&
-            elemPinnedContentContentsContainer !== null) {
+            elemPinnedContentContentsContainer !== null
+        ) {
             // 判定 isSetTempMinWidth。
             if (isSetTempMinWidth === false) {
                 // 設定 tempMinWidth。
@@ -651,7 +750,8 @@ export function doInit() {
             }
 
             if (elemPinnedContentContentsContainer.style.display !== "none") {
-                elemPinnedContentMainContainer.style.minWidth = `${elemPinnedContentTitle.clientWidth}px`;
+                elemPinnedContentMainContainer.style.minWidth =
+                    `${elemPinnedContentTitle.clientWidth}px`;
 
                 elemPinnedContentTitleContainer.style.marginBottom = "";
 

@@ -1,116 +1,99 @@
 "use strict";
 
+import { CMIDSet, CommandSet, StringSet } from "./dataSet.js";
+
 /**
  * 共用函式
  */
 export class Function {
     /**
-     * 訊息：醒來
+     * 查詢目前的分頁
+     *
+     * 來源：https://developer.chrome.com/docs/extensions/reference/tabs/
+     *
+     * @returns {Promise<chrome.tabs.Tab | undefined>} chrome.tabs.Tab 或是 undefined。
      */
-    static MessageWakeUp = "wakeUp";
+    static async queryCurrentTab() {
+        return new Promise(async (resolve) => {
+            const queryInfo = {
+                active: true,
+                currentWindow: true,
+            };
+
+            // `tab` will either be a `tabs.Tab` instance or `undefined`.
+            let [tab] = await chrome.tabs.query(queryInfo);
+
+            // background.js 不能使用 alert()，故於此處關閉。
+            this.processLastError(() => {
+                resolve(undefined);
+            }, false);
+
+            resolve(tab);
+        });
+    }
 
     /**
-     * 共用的 ContextMenu 選項「釘選已選取的內容」的 ID 值
-     */
-    static CMID_PinSelectedContent = "CMID_PinSelectedContent";
-
-    /**
-     * 共用的 ContextMenu 選項「附加釘選已選取的內容」的 ID 值
-     */
-    static CMID_AppendPinSelectedContent = "CMID_AppendPinSelectedContent";
-
-    /**
-     * 共用的 ContextMenu 選項「解除釘選已選取的內容」的 ID 值
-     */
-    static CMID_UnpinSelectedContent = "CMID_UnpinSelectedContent";
-
-    /**
-     * 共用的 ContextMenu 選項「重設已釘選的內容的位置」的 ID 值
-     */
-    static CMID_ResetPinnedContentPosition = "CMID_ResetPinnedContentPosition";
-
-    /**
-     * 共用的 ContextMenu 選項「開闔已釘選的內容」的 ID 值
-     */
-    static CMID_TogglePinnedContent = "CMID_TogglePinnedContent";
-
-    /**
-     * 指令：釘選已選取的內容
-     */
-    static CommandPinSelectedContent = "pinSelectedContent";
-
-    /**
-     * 指令：附加釘選已選取的內容
-     */
-    static CommandAppendPinSelectedContent = "appendPinSelectedContent";
-
-    /**
-     * 指令：解除釘選已選取的內容
-     */
-    static CommandUnpinSelectedContent = "unpinSelectedContent";
-
-    /**
-     * 指令：重設已釘選的內容的位置
-     */
-    static CommandResetPinnedContentPosition = "resetPinnedContentPosition";
-
-    /**
-     * 指令：開闔已釘選的內容
-     */
-    static CommandTogglePinnedContent = "togglePinnedContent";
-
-    /**
-     * 分隔符號 "^"
-     */
-    static Seperator = "^";
-
-    /**
-     * 傳送訊息
+     * 傳送訊息到分頁
      *
      * @param {string} command 字串，指令。
      * @param {string} isContextMenu 布林值，是否為右鍵選單，預設值為 false。
      */
-    static async sendMsg(command, isContextMenu = false) {
-        // 來自右側選單的訊息必須傳送。
-        if (isContextMenu === true) {
-            chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                if (tabs.length > 0) {
-                    const tabId = tabs[0].id;
+    static async sendMessageToTab(command, isContextMenu = false) {
+        const tab = await this.queryCurrentTab();
 
-                    if (tabId !== undefined) {
-                        chrome.tabs.sendMessage(tabId, command);
-                    } else {
-                        console.error(chrome.i18n.getMessage("messageTabIDIsUndefined"));
-                    }
-                } else {
-                    console.error(chrome.i18n.getMessage("messageTabsIsEmpty"));
-                }
-            });
+        if (tab === undefined) {
+            this.writeConsoleLog(chrome.i18n.getMessage("messageTabsIsEmpty"));
 
             return;
+        }
+
+        const tabId = tab.id;
+
+        if (tabId === undefined) {
+            this.writeConsoleLog(chrome.i18n.getMessage("messageTabIdIsUndefined"));
+
+            return;
+        }
+
+        // 來自右側選單的訊息必須傳送。
+        if (isContextMenu === true) {
+            chrome.tabs.sendMessage(tabId, command, (_response) => {
+                // background.js 不能使用 alert()，故於此處關閉。
+                this.processLastError(undefined, false);
+            });
         }
     }
 
     /**
-     * 傳送資料
+     * 傳送資料到分頁
      *
      * @param {string} command 字串，指令。
      * @param {string} data 字串，資料。
      */
-    static async sendData(command, data) {
-        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-            if (tabs.length > 0) {
-                const tabId = tabs[0].id;
+    static async sendDataToTab(command, data) {
+        const tab = await this.queryCurrentTab();
 
-                if (tabId !== undefined) {
-                    chrome.tabs.sendMessage(tabId, { "command": command, "data": data });
-                } else {
-                    console.error(chrome.i18n.getMessage("messageTabIDIsUndefined"));
-                }
-            } else {
-                console.error(chrome.i18n.getMessage("messageTabsIsEmpty"));
-            }
-        });
+        if (tab === undefined) {
+            this.writeConsoleLog(chrome.i18n.getMessage("messageTabsIsEmpty"));
+
+            return;
+        }
+
+        const tabId = tab.id;
+
+        if (tabId === undefined) {
+            this.writeConsoleLog(chrome.i18n.getMessage("messageTabIdIsUndefined"));
+
+            return;
+        }
+
+        chrome.tabs.sendMessage(
+            tabId,
+            { "command": command, "data": data },
+            (_response) => {
+                this.processLastError();
+            },
+        );
     }
 
     /**
@@ -131,7 +114,9 @@ export class Function {
      * @returns {string[]} 字串陣列，影片的 ID 值。
      */
     static getYouTubeIdAndStartSec(url) {
-        const array = url.split(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*)(?:(\?t|&start|&t)=(\d+))?.*/);
+        const array = url.split(
+            /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*)(?:(\?t|&start|&t)=(\d+))?.*/,
+        );
 
         const newArray = [];
 
@@ -178,7 +163,7 @@ export class Function {
      * @returns {any[]} 陣列，解析後的 YouTube 留言內容。
      */
     static extractYouTubeComment() {
-        // TODO: 2023-02-17 未來可能會需要再調整。
+        // TODO: 2023/2/17 未來可能會需要再調整。
         let outputDataSet = [],
             composeStr = "",
             unknownNameCount = 1,
@@ -207,13 +192,17 @@ export class Function {
 
             // 當 innerHTML 的內容不為 "\n"、"\r" 時，
             // 才將結點加入至陣列。
-            if (innerHTML !== "\n" &&
-                innerHTML !== "\r") {
+            if (
+                innerHTML !== "\n" &&
+                innerHTML !== "\r"
+            ) {
                 // 排除圖片。
                 if (item instanceof HTMLImageElement === false) {
                     // 排除 Hash 標籤的連結。
-                    if (item instanceof HTMLAnchorElement === true &&
-                        item.textContent.indexOf("#") === -1) {
+                    if (
+                        item instanceof HTMLAnchorElement === true &&
+                        item.textContent.indexOf("#") === -1
+                    ) {
                         tempNodeArray.push(item);
                     } else {
                         tempNodeArray.push(item);
@@ -252,11 +241,14 @@ export class Function {
                     const textContent = node.textContent ?? "";
 
                     // 時間標記連結。
-                    if (textContent.indexOf("#") === -1 &&
-                        textContent.indexOf("http") === -1) {
+                    if (
+                        textContent.indexOf("#") === -1 &&
+                        textContent.indexOf("http") === -1
+                    ) {
                         const youTubeData = Function.getYouTubeIdAndStartSec(node.href);
 
-                        composeStr += `${youTubeData[0]}${Function.Seperator}${youTubeData[1]}${Function.Seperator}`;
+                        composeStr += `${youTubeData[0]}${StringSet.Separator}${youTubeData[1]
+                            }${StringSet.Separator}`;
 
                         if (tempNameStr !== "") {
                             composeStr += tempNameStr;
@@ -308,8 +300,10 @@ export class Function {
                         ?.replace(/[\n\r]/g, "")
                         .trimStart();
 
-                    if (trimedTextContent !== undefined &&
-                        trimedTextContent?.length > 0) {
+                    if (
+                        trimedTextContent !== undefined &&
+                        trimedTextContent?.length > 0
+                    ) {
                         // 判斷最後一個字元是否為 #。
                         if (trimedTextContent.slice(-1) === "#") {
                             // 移除字串尾巴的 #。
@@ -324,7 +318,7 @@ export class Function {
                             tempNameStr += trimedTextContent;
                         } else {
                             // 判斷 composeStr 是否沒內容。
-                            if (composeStr.indexOf(Function.Seperator) !== -1) {
+                            if (composeStr.indexOf(StringSet.Separator) !== -1) {
                                 composeStr += trimedTextContent;
 
                                 outputDataSet.push(composeStr);
@@ -342,7 +336,8 @@ export class Function {
                                     return;
                                 } else {
                                     // 針對只有時間標記的資料，補一個暫用的名稱。
-                                    composeStr += `${chrome.i18n.getMessage("stringUnknownName")} ${unknownNameCount}`;
+                                    composeStr += `${chrome.i18n.getMessage("stringUnknownName")
+                                        } ${unknownNameCount}`;
 
                                     unknownNameCount++;
 
@@ -366,8 +361,10 @@ export class Function {
 
                 // 當 childIndex 為 array 的內最後一個項目時，
                 // 且 tempNameStr 不為空白時。
-                if (childIndex === array.length - 1 &&
-                    tempNameStr !== "") {
+                if (
+                    childIndex === array.length - 1 &&
+                    tempNameStr !== ""
+                ) {
                     let targetIndex = totalPushCount - 1;
 
                     if (pushCount >= 1) {
@@ -413,21 +410,102 @@ export class Function {
      *
      * 來源：https://stackoverflow.com/a/48941794
      *
-     * @param {string} value 字串，值。
+     * @param {string | string[]} value 字串或字串陣列，值。
      */
-    static insertStyleSheetRule(value) {
-        const sheets = document.styleSheets;
+    static insertStyleSheetRules(value) {
+        try {
+            const sheets = document.styleSheets;
 
-        if (sheets.length === 0) {
-            const newStyle = document.createElement("style");
+            if (sheets.length === 0) {
+                const newStyle = document.createElement("style");
 
-            newStyle.appendChild(document.createTextNode(""));
+                newStyle.appendChild(document.createTextNode(""));
 
-            document.head.appendChild(newStyle);
+                document.head.appendChild(newStyle);
+            }
+
+            const sheet = sheets[sheets.length - 1];
+
+            if (typeof value === "string") {
+                sheet.insertRule(value, sheet.cssRules.length);
+            } else if (Array.isArray(value) === true) {
+                value.forEach((item) => {
+                    sheet.insertRule(item, sheet.cssRules.length);
+                });
+            } else {
+                this.writeConsoleLog(
+                    "CSS 規則插入失敗，value 值的類型不為 string 或 string[]。",
+                );
+            }
+        } catch (error) {
+            this.writeConsoleLog(error);
+        }
+    }
+
+    /**
+     * 更新 contextMenus 的標題
+     *
+     * @param {string} key 字串，鍵值。
+     * @param {string} title 字串，標題。
+     */
+    static updateContextMenusTitle(key, title) {
+        chrome.contextMenus.update(key, {
+            title: title,
+        }, () => {
+            // background.js 不能使用 alert()，故於此處關閉。
+            this.processLastError(undefined, false);
+        });
+    }
+
+    /**
+     * 處理 chrome.runtime.lastError
+     *
+     * @param {Function} callback 回呼函式，預設值是 undefined。
+     * @param {boolean} useAlert 布林值，是否使用 alert()，預設值為 true。
+     * @returns {string | undefined} 字串或是 undefined，最後的錯誤訊息。
+     */
+    static processLastError(callback, useAlert = true) {
+        let lastErrorMesssage = undefined;
+
+        if (chrome.runtime.lastError) {
+            lastErrorMesssage = chrome.runtime.lastError?.message;
+
+            this.writeConsoleLog(lastErrorMesssage);
+
+            if (useAlert === true) {
+                alert(lastErrorMesssage);
+            }
+
+            callback;
         }
 
-        const sheet = sheets[sheets.length - 1];
+        return lastErrorMesssage;
+    }
 
-        sheet.insertRule(value, sheet.cssRules.length);
+    /**
+     * 取得指令
+     *
+     * @param {string} cmid 字串，CMID。
+     * @returns {string | undefined} 字串或是 undefined，指令。
+     */
+    static getCommand(cmid) {
+        switch (cmid) {
+            case CMIDSet.PinSelectedContent:
+                return CommandSet.PinSelectedContent;
+            case CMIDSet.AppendPinSelectedContent:
+                return CommandSet.AppendPinSelectedContent;
+            case CMIDSet.UnpinSelectedContent:
+                return CommandSet.UnpinSelectedContent;
+            case CMIDSet.ResetPinnedContentPosition:
+                return CommandSet.ResetPinnedContentPosition;
+            case CMIDSet.TogglePinnedContent:
+                return CommandSet.TogglePinnedContent;
+            default:
+                Function.writeConsoleLog(info.menuItemId);
+
+                break;
+        }
+
+        return undefined;
     }
 }
