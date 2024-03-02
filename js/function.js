@@ -163,11 +163,9 @@ export class Function {
      * @returns {any[]} 陣列，解析後的 YouTube 留言內容。
      */
     static extractYouTubeComment() {
-        // TODO: 2023/2/17 未來可能會需要再調整。
+        // TODO: 2024/3/2 未來可能會需要再調整程式碼。
         let outputDataSet = [],
-            composeStr = "",
-            unknownNameCount = 1,
-            tempNameStr = "";
+            composeStr = "";
 
         const selection = document.getSelection();
         const range = selection.getRangeAt(0);
@@ -192,17 +190,13 @@ export class Function {
 
             // 當 innerHTML 的內容不為 "\n"、"\r" 時，
             // 才將結點加入至陣列。
-            if (
-                innerHTML !== "\n" &&
-                innerHTML !== "\r"
-            ) {
+            if (innerHTML !== "\n" &&
+                innerHTML !== "\r") {
                 // 排除圖片。
                 if (item instanceof HTMLImageElement === false) {
                     // 排除 Hash 標籤的連結。
-                    if (
-                        item instanceof HTMLAnchorElement === true &&
-                        item.textContent.indexOf("#") === -1
-                    ) {
+                    if (item instanceof HTMLAnchorElement === true &&
+                        item.textContent.indexOf("#") === -1) {
                         tempNodeArray.push(item);
                     } else {
                         tempNodeArray.push(item);
@@ -234,152 +228,43 @@ export class Function {
         let totalPushCount = 0;
 
         tempNode2DArray.forEach((nodeArray) => {
-            let pushCount = 0, overValue = -1;
+            let pushCount = 0;
 
-            nodeArray.forEach((node, childIndex, array) => {
-                if (node instanceof HTMLAnchorElement) {
-                    const textContent = node.textContent ?? "";
-
-                    // 時間標記連結。
-                    if (
-                        textContent.indexOf("#") === -1 &&
-                        textContent.indexOf("http") === -1
-                    ) {
-                        const youTubeData = Function.getYouTubeIdAndStartSec(node.href);
-
-                        composeStr += `${youTubeData[0]}${StringSet.Separator}${youTubeData[1]
-                            }${StringSet.Separator}`;
-
-                        if (tempNameStr !== "") {
-                            composeStr += tempNameStr;
-
-                            outputDataSet.push(composeStr);
-
-                            pushCount++;
-
-                            // 清空 composeStr 供下一次使用。
-                            composeStr = "";
-
-                            // 清空 tempNameStr 供下一次使用。
-                            tempNameStr = "";
-                        }
-                    } else {
-                        // # 標籤或網址連結。
-                        tempNameStr += textContent;
-                    }
-                } else if (node instanceof HTMLSpanElement) {
-                    // 判斷 array 的長度是否大於 3。
-                    if (array.length > 3) {
-                        // 判斷 array 的長度是否大於 5。
-                        if (array.length > 5) {
-                            // 當 overValue 為 -1 時，設定 overValue 的值。
-                            if (overValue === -1) {
-                                overValue = array.length - 5;
-                            }
-
-                            // 判斷 childIndex 是否小於 overValue，
-                            // 排除第一個時間標記前的任何字串。
-                            if (childIndex <= overValue) {
-                                // 不進行任何處理。
-                                return;
-                            } else {
-                                // 重設 overValue。
-                                overValue = -1;
-                            }
-                        } else {
-                            // 排除第一個時間標記前的任何字串。
-                            if (childIndex === 0) {
-                                // 不進行任何處理。
-                                return;
-                            }
-                        }
-                    }
-
-                    // 去掉換行字元跟移除開頭的空白。
-                    let trimedTextContent = node.textContent
-                        ?.replace(/[\n\r]/g, "")
-                        .trimStart();
-
-                    if (
-                        trimedTextContent !== undefined &&
-                        trimedTextContent?.length > 0
-                    ) {
-                        // 判斷最後一個字元是否為 #。
-                        if (trimedTextContent.slice(-1) === "#") {
-                            // 移除字串尾巴的 #。
-                            trimedTextContent = trimedTextContent.slice(0, -1).trimEnd();
-                        }
-
-                        if (composeStr === "") {
-                            // 當 composeStr 為空白時，則表示時間標記不在字串前方，
-                            // 而可能是在的中段或是最尾端。
-
-                            // 將歌曲名稱指派給 tempNameStr。
-                            tempNameStr += trimedTextContent;
-                        } else {
-                            // 判斷 composeStr 是否沒內容。
-                            if (composeStr.indexOf(StringSet.Separator) !== -1) {
-                                composeStr += trimedTextContent;
-
-                                outputDataSet.push(composeStr);
-
-                                pushCount++;
-
-                                // 清空 composeStr 供下一次使用。
-                                composeStr = "";
-
-                                // 清空 tempNameStr 供下一次使用。
-                                tempNameStr = "";
-                            } else {
-                                // 判斷 composeStr 是否沒內容。
-                                if (composeStr === "" || composeStr.length <= 0) {
-                                    return;
-                                } else {
-                                    // 針對只有時間標記的資料，補一個暫用的名稱。
-                                    composeStr += `${chrome.i18n.getMessage("stringUnknownName")
-                                        } ${unknownNameCount}`;
-
-                                    unknownNameCount++;
-
-                                    outputDataSet.push(composeStr);
-
-                                    pushCount++;
-
-                                    // 清空 composeStr 供下一次使用。
-                                    composeStr = "";
-
-                                    // 清空 tempNameStr 供下一次使用。
-                                    tempNameStr = "";
-                                }
-                            }
-                        }
-                    }
-                } else {
+            nodeArray.forEach((node, _childIndex, _array) => {
+                // 2024/3/2 YouTube 留言新格式。
+                if (node.nodeName !== "SPAN") {
                     // 不進行任何處理。
                     return;
                 }
 
-                // 當 childIndex 為 array 的內最後一個項目時，
-                // 且 tempNameStr 不為空白時。
-                if (
-                    childIndex === array.length - 1 &&
-                    tempNameStr !== ""
-                ) {
-                    let targetIndex = totalPushCount - 1;
+                // 理論上時間標記連結只會只有一個子項目。
+                if (node.childNodes.length !== 1) {
+                    // 不進行任何處理。
+                    return;
+                }
 
-                    if (pushCount >= 1) {
-                        targetIndex += pushCount;
+                const childNode = node.childNodes[0];
+
+                if (childNode instanceof HTMLAnchorElement) {
+                    const textContent = node.textContent ?? "";
+
+                    // 時間標記連結。
+                    if (textContent.indexOf("#") === -1 &&
+                        textContent.indexOf("http") === -1) {
+                        const youTubeData = Function.getYouTubeIdAndStartSec(childNode.href);
+
+                        composeStr += `${youTubeData[0]}${StringSet.Separator}${youTubeData[1]}${StringSet.Separator}`;
+
+                        outputDataSet.push(composeStr);
+
+                        pushCount++;
+
+                        // 清空 composeStr 供下一次使用。
+                        composeStr = "";
                     }
-
-                    if (targetIndex < 0) {
-                        targetIndex = 0;
-                    }
-
-                    // 將 tempNameStr 附加至 outputDataSet[targetIndex]。
-                    outputDataSet[targetIndex] += tempNameStr;
-
-                    // 清空 tempNameStr 供下一次使用。
-                    tempNameStr = "";
+                } else {
+                    // 不進行任何處理。
+                    return;
                 }
             });
 

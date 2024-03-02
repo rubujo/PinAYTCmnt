@@ -78,16 +78,12 @@ export function doInit() {
             return;
         }
 
-        // TODO: 2023/2/16 未來可能會需要再調整。
+        // TODO: 2024/3/2 未來可能會需要再調整。
         // 前處理資料。
 
         const processedDataSet = [];
 
-        let isStartEndFormat = false,
-            tempVideoID = "",
-            tempStartSeconds = "";
-
-        dataSet.forEach((item) => {
+        dataSet.forEach((item, index, _array) => {
             // 0：影片 ID、1：開始秒數、2：歌名。
             const tempArray = item.split(StringSet.Separator),
                 videoID = tempArray[0],
@@ -99,73 +95,11 @@ export function doInit() {
                 return;
             }
 
-            let notMatchSeparatorCase = true;
+            const newItem = `${videoID}${StringSet.Separator}` +
+                `${startSeconds}${StringSet.Separator}` +
+                `${index + 1}. ${songName}`;
 
-            // 分隔符號案例。
-            const separatorCase = [
-                // 空值不是分隔符號。
-                "",
-                "-",
-                "- ",
-                " - ",
-                " -",
-                "~",
-                "~ ",
-                " ~ ",
-                " ~",
-                "、",
-                "、 ",
-                " 、 ",
-                " 、",
-                "～",
-                "～ ",
-                " ～ ",
-                " ～",
-                ",",
-                ", ",
-                " , ",
-                " ,",
-                "，",
-                "， ",
-                " ， ",
-                " ，",
-            ];
-
-            for (let i = 0; i < separatorCase.length; i++) {
-                const separator = separatorCase[i];
-
-                if (songName === separator) {
-                    notMatchSeparatorCase = false;
-
-                    break;
-                }
-            }
-
-            // 判斷 songName 是否不為空值、"-" 或是 "~"（以及相關的數種組合）。
-            // 當 songName 為上列值時，則表示留言內是用該值分隔開始與結束時間。
-            if (notMatchSeparatorCase) {
-                if (isStartEndFormat) {
-                    const newItem = `${tempVideoID}${StringSet.Separator}` +
-                        `${tempStartSeconds}${StringSet.Separator}` +
-                        `${songName}`;
-
-                    processedDataSet.push(newItem);
-
-                    isStartEndFormat = false;
-                    tempVideoID = "";
-                    tempStartSeconds = "";
-                } else {
-                    const newItem = `${videoID}${StringSet.Separator}` +
-                        `${startSeconds}${StringSet.Separator}` +
-                        `${songName}`;
-
-                    processedDataSet.push(newItem);
-                }
-            } else {
-                isStartEndFormat = true;
-                tempVideoID = videoID;
-                tempStartSeconds = startSeconds;
-            }
+            processedDataSet.push(newItem);
         });
 
         // 清除 dataSet。
